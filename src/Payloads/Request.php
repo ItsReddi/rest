@@ -8,7 +8,7 @@ namespace OtherCode\Rest\Payloads;
  * @version 1.0
  * @package OtherCode\Rest\Payloads
  */
-class Request
+class Request implements \Psr\Http\Message\RequestInterface
 {
     /**
      * Http Method
@@ -61,5 +61,29 @@ class Request
         } else {
             $this->headers = new \OtherCode\Rest\Payloads\Headers();
         }
+    }
+
+    public function getRequestTarget()
+    {
+    }
+
+    public function withRequestTarget($requestTarget)
+    {
+    }
+
+    public function getMethod()
+    {
+    }
+
+    public function withMethod($method)
+    {
+    }
+
+    public function getUri()
+    {
+    }
+
+    public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false)
+    {
     }
 }
