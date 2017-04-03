@@ -17,10 +17,10 @@ class Request implements \Psr\Http\Message\RequestInterface
     public $method;
 
     /**
-     * Url to call
+     * Uri to call
      * @var string
      */
-    public $url;
+    public $uri;
 
     /**
      * Request headers
@@ -37,14 +37,14 @@ class Request implements \Psr\Http\Message\RequestInterface
     /**
      * Request constructor.
      * @param string $method
-     * @param string $url
+     * @param string $uri
      * @param array|object $body
      * @param Headers|null $headers
      */
-    public function __construct($method = null, $url = null, $body = null, \OtherCode\Rest\Payloads\Headers $headers = null)
+    public function __construct($method = null, $uri = null, $body = null, \OtherCode\Rest\Payloads\Headers $headers = null)
     {
         $this->method = $method;
-        $this->url = $url;
+        $this->uri = $uri;
         $this->body = $body;
 
         $this->setHeaders($headers);
@@ -65,14 +65,20 @@ class Request implements \Psr\Http\Message\RequestInterface
 
     public function getRequestTarget()
     {
+
     }
 
     public function withRequestTarget($requestTarget)
     {
     }
 
+    /**
+     * Retrieves the HTTP method of the request.
+     * @return string Returns the request method.
+     */
     public function getMethod()
     {
+        return $this->method;
     }
 
     public function withMethod($method)
@@ -81,6 +87,7 @@ class Request implements \Psr\Http\Message\RequestInterface
 
     public function getUri()
     {
+        return $this->uri;
     }
 
     public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false)

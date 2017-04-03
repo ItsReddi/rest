@@ -22,6 +22,7 @@ class Configuration extends \OtherCode\Rest\Core\CurlOpts
         foreach ($source as $key => $value) {
             if (in_array(strtolower(trim($key)), $allowed)) {
                 switch (strtolower(trim($key))) {
+                    case 'headers':
                     case 'httpheader':
                         $this->addHeaders($value);
                         break;

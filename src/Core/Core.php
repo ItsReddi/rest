@@ -108,7 +108,7 @@ abstract class Core
 
         $this->request->body = $body;
         $this->request->method = strtoupper($method);
-        $this->request->url = $this->configuration->url . $url;
+        $this->request->uri = $this->configuration->url . $url;
 
         /**
          * In case we have some modules attached to
@@ -145,7 +145,7 @@ abstract class Core
          * We configure the domain and url where we will
          * make the request ir exists.
          */
-        curl_setopt($this->curl, CURLOPT_URL, $this->request->url);
+        curl_setopt($this->curl, CURLOPT_URL, $this->request->uri);
 
         /**
          * Main execution

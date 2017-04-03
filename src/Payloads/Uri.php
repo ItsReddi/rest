@@ -17,42 +17,150 @@ namespace OtherCode\Rest\Payloads;
  * granted herein at any time at its sole discretion. THIS SOURCE CODE IS PROVIDED
  * "AS IS". INGRAM MICRO INC. MAKES NO REPRESENTATIONS OR WARRANTIES AND DISCLAIMS
  * ALL IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE.
- * @package es.othercode.rest
+ * @package OtherCode\Rest\Payloads
  */
 class Uri implements \Psr\Http\Message\UriInterface
 {
+
+    /**
+     * Scheme component
+     * @var string
+     */
+    public $scheme;
+
+    /**
+     * Host component
+     * @var string
+     */
+    public $host;
+
+    /**
+     * Port component
+     * @var string
+     */
+    public $port;
+
+    /**
+     * User component
+     * @var string
+     */
+    public $user;
+
+    /**
+     * Password component
+     * @var string
+     */
+    public $pass;
+
+    /**
+     * Path component
+     * @var string
+     */
+    public $path;
+
+    /**
+     * String after the question mark ?
+     * @var string
+     */
+    public $query;
+
+    /**
+     * String after the hashmark #
+     * @var string
+     */
+    public $fragment;
+
+    /**
+     * Uri constructor.
+     * @param string $uri
+     */
+    public function __construct($uri)
+    {
+        if (!is_string($uri)) {
+            throw new \InvalidArgumentException('The URI parameter must be a string, a ' . gettype($uri) . ' is given.');
+        }
+
+        foreach (parse_url($uri) as $component => $value) {
+            $this->{$component} = $value;
+
+        }
+    }
+
+    /**
+     * Retrieve the scheme component of the URI.
+     * @return string
+     */
     public function getScheme()
     {
+        return $this->scheme;
     }
 
     public function getAuthority()
     {
     }
 
+    /**
+     *
+     * @return string
+     */
     public function getUserInfo()
     {
+        $userInformation = '';
+        if (!empty($this->user)) {
+            $userInformation .= $this->user;
+            if (!empty($this->pass)) {
+                $userInformation .= ':' . $this->pass;
+            }
+        }
+
+        return $userInformation;
     }
 
+    /**
+     * Retrieve the host component of the URI.
+     * @return string
+     */
     public function getHost()
     {
+        return $this->host;
     }
 
+    /**
+     * Retrieve the port component of the URI.
+     * @return string
+     */
     public function getPort()
     {
+        return $this->port;
     }
 
+    /**
+     * Retrieve the path component of the URI.
+     * @return string
+     */
     public function getPath()
     {
+        return $this->path;
     }
 
+    /**
+     * Retrieve the query string of the URI.
+     * @return string
+     */
     public function getQuery()
     {
-
+        return $this->query;
     }
 
+    /**
+     * Retrieve the fragment component of the URI.
+     * @return string
+     */
     public function getFragment()
     {
+        return $this->fragment;
     }
+
 
     public function withScheme($scheme)
     {
