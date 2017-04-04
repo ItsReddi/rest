@@ -134,15 +134,19 @@ class Uri implements \Psr\Http\Message\UriInterface
     public function getAuthority()
     {
         $authority = '';
-        if (!empty($this->getUserInfo())) {
+
+        $buffer = $this->getUserInfo();
+        if (!empty($buffer)) {
             $authority .= $this->getUserInfo() . '@';
         }
 
-        if (!empty($this->getHost())) {
+        $buffer = $this->getHost();
+        if (!empty($buffer)) {
             $authority .= $this->getHost();
         }
 
-        if (!empty($this->getPort()) && $this->getPort() !== 80) {
+        $buffer = $this->getPort();
+        if (!empty($buffer) && $buffer !== 80) {
             $authority .= ':' . $this->getPort();
         }
         return $authority;
@@ -218,7 +222,6 @@ class Uri implements \Psr\Http\Message\UriInterface
     public function withScheme($scheme)
     {
         $scheme = strtolower($scheme);
-
         if (!in_array($scheme, $this->validSchemes)) {
             throw new \InvalidArgumentException($scheme . " is not a valid URI Scheme.");
         }
