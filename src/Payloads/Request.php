@@ -93,4 +93,27 @@ class Request implements \Psr\Http\Message\RequestInterface
     public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false)
     {
     }
+
+    public function getProtocolVersion(){}
+
+    public function withProtocolVersion($version){}
+
+    public function getHeaders(){}
+
+    public function hasHeader($name){}
+
+    public function getHeader($name){}
+
+    public function getHeaderLine($name){}
+
+    public function withHeader($name, $value){}
+
+    public function withAddedHeader($name, $value){}
+
+    public function withoutHeader($name){}
+
+    public function getBody(){}
+
+    public function withBody(\Psr\Http\Message\StreamInterface $body){}
+
 }

@@ -1,7 +1,13 @@
-<phpunit bootstrap="autoload.php">
+<phpunit bootstrap="vendor/autoload.php">
     <testsuites>
-        <testsuite name="rest">
-            <directory>.</directory>
+        <testsuite name="Base">
+            <file>tests/URITest.php</file>
+            <file>tests/Headers.php</file>
+            <file>tests/ConfigurationTest.php</file>
+            <file>tests/RestTest.php</file>
+        </testsuite>
+        <testsuite name="Modules">
+            <file>tests/Decoders.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
