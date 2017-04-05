@@ -4,19 +4,9 @@ namespace OtherCode\Rest\Payloads;
 
 
 /**
- * Uri
- * @author SofCloudIT <info@sofcloudit.com>
- * @author Unay Santisteban <davidu@softcom.com>
- * @copyright Copyright (C) 2017 Ingram Micro Inc. Any rights not granted herein
- * are reserved for Ingram Micro Inc. Permission to use, copy and distribute this
- * source code without fee and without a signed license agreement is hereby granted
- * provided that: (i) the above copyright notice and this paragraph appear in all
- * copies and distributions; and (ii) the source code is only used, copied or
- * distributed for the purpose of using it with the APS package for which Ingram Micro Inc.
- * or its affiliates integrated it into.  Ingram Micro Inc. may revoke the limited license
- * granted herein at any time at its sole discretion. THIS SOURCE CODE IS PROVIDED
- * "AS IS". INGRAM MICRO INC. MAKES NO REPRESENTATIONS OR WARRANTIES AND DISCLAIMS
- * ALL IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE.
+ * Class URI
+ * @author Unay Santisteban <usantisteban@othercode.es>
+ * @version 1.0
  * @package OtherCode\Rest\Payloads
  */
 class Uri implements \Psr\Http\Message\UriInterface
@@ -202,7 +192,7 @@ class Uri implements \Psr\Http\Message\UriInterface
      */
     public function getQuery()
     {
-        return $this->query;
+        return rawurldecode($this->query);
     }
 
     /**
@@ -217,7 +207,8 @@ class Uri implements \Psr\Http\Message\UriInterface
     /**
      * Return an instance with the specified scheme.
      * @param string $scheme
-     * @return Uri
+     * @throws \InvalidArgumentException
+     * @return \OtherCode\Rest\Payloads\Uri
      */
     public function withScheme($scheme)
     {
@@ -232,37 +223,138 @@ class Uri implements \Psr\Http\Message\UriInterface
         return $uri;
     }
 
+    /**
+     * @param string $user
+     * @param null $password
+     * @return \OtherCode\Rest\Payloads\Uri
+     */
     public function withUserInfo($user, $password = null)
     {
+        $uri = clone $this;
+        $uri->user = $user;
+        $uri->pass = $password;
 
+        return $uri;
     }
 
+    /**
+     * Return an instance with the specified host.
+     * @param string $host
+     * @throws \InvalidArgumentException
+     * @return \OtherCode\Rest\Payloads\Uri
+     */
     public function withHost($host)
     {
+        if (!empty($host) && preg_match('/^([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i', $host) !== 1) {
+            throw new \InvalidArgumentException('Invalid host name.');
+        }
+
         $uri = clone $this;
         $uri->host = strtolower($host);
 
         return $uri;
     }
 
+    /**
+     * Return an instance with the specified port.
+     * @param int|null $port
+     * @return \OtherCode\Rest\Payloads\Uri
+     */
     public function withPort($port)
     {
+        if (!is_int($port) || $port > 65535 || $port < 0) {
+            throw new \InvalidArgumentException('Invalid port, must be an integer between 1 and 65535.');
+        }
+
+        $uri = clone $this;
+        $uri->port = strtolower($port);
+
+        return $uri;
     }
 
+    /**
+     * @param string $path
+     * @throws \InvalidArgumentException
+     * @return \OtherCode\Rest\Payloads\Uri
+     */
     public function withPath($path)
     {
+
+
+        $uri = clone $this;
+        $uri->path = rawurlencode(rawurldecode($path));
+
+        return $uri;
     }
 
+    /**
+     * @param string $query
+     * @throws \InvalidArgumentException
+     * @return \OtherCode\Rest\Payloads\Uri
+     */
     public function withQuery($query)
     {
+        if (strpos($query, '=') === false) {
+            throw new \InvalidArgumentException('Invalid query string it must be key1=param1 format.');
+        }
+
+        if (substr_count($query, '=') > 1 && strpos($query, '&') === false) {
+            throw new \InvalidArgumentException('Invalid query string, multiple parameters must been separated by "&"');
+        }
+
+        $uri = clone $this;
+        $uri->query = rawurlencode(rawurldecode($query));
+
+        return $uri;
     }
 
+    /**
+     * @param string $fragment
+     * @return \OtherCode\Rest\Payloads\Uri
+     */
     public function withFragment($fragment)
     {
+        $uri = clone $this;
+        $uri->fragment = rawurlencode(rawurldecode($fragment));
+
+        return $uri;
     }
 
+    /**
+     * Return the URI as string format
+     * @return string
+     */
     public function __toString()
     {
+        $uri = '';
+
+        $buffer = $this->getScheme();
+        if (!empty($buffer)) {
+            $uri .= $buffer . '://';
+        }
+
+        $buffer = $this->getAuthority();
+        if (!empty($buffer)) {
+            $uri .= $buffer;
+        }
+
+        $buffer = $this->getPath();
+        if (!empty($buffer)) {
+            $uri .= $buffer;
+        }
+
+        $buffer = $this->getQuery();
+        if (!empty($buffer)) {
+            $uri .= '?' . $buffer;
+        }
+
+        $buffer = $this->getFragment();
+        if (!empty($buffer)) {
+            $uri .= '#' . $buffer;
+        }
+
+        return $uri;
+
     }
 
 }

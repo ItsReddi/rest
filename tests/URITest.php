@@ -89,7 +89,7 @@ class URITest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Test the withScheme() methods.
+     * Test the withScheme() method
      */
     public function testWithScheme()
     {
@@ -121,5 +121,176 @@ class URITest extends \PHPUnit\Framework\TestCase
         $uri->withScheme('thisSchemeIsInvalid!');
     }
 
+    /**
+     * Test withUserInfo() method.
+     */
+    public function testWithUserInfo()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com');
 
+        $withUserInfo = $uri->withUserInfo('otheruser', 'otherpassword');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withUserInfo);
+        $this->assertEquals('otheruser:otherpassword', $withUserInfo->getUserInfo());
+
+        $withUserInfo = $uri->withUserInfo('otheruser');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withUserInfo);
+        $this->assertEquals('otheruser', $withUserInfo->getUserInfo());
+
+        $withUserInfo = $uri->withUserInfo('');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withUserInfo);
+        $this->assertEquals('', $withUserInfo->getUserInfo());
+
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
+        $this->assertEquals('username:password', $uri->getUserInfo());
+    }
+
+    /**
+     * Test withHost() method
+     */
+    public function testWithHost()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com');
+
+        $withHost = $uri->withHost('otherhost.net');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withHost);
+        $this->assertEquals('otherhost.net', $withHost->getHost());
+
+        $withHost = $uri->withHost('');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withHost);
+        $this->assertEquals('', $withHost->getHost());
+
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
+        $this->assertEquals('hostname.com', $uri->getHost());
+    }
+
+    /**
+     * Test host validation
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithHostException()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com');
+        $uri->withHost('this host is (not) valid!!');
+    }
+
+    /**
+     * Test withPort() methods
+     */
+    public function testWithPort()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://hostname.com:8080');
+
+        $withPort = $uri->withPort(9000);
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withPort);
+        $this->assertEquals(9000, $withPort->getPort());
+
+        $withPort = $uri->withPort(80);
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withPort);
+        $this->assertEquals(80, $withPort->getPort());
+
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
+        $this->assertEquals(8080, $uri->getPort());
+
+    }
+
+    /**
+     * Test port exception
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithPortExceptionWrongType()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://hostname.com');
+        $uri->withPort('8080');
+    }
+
+    /**
+     * Test port exception
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithPortExceptionWrongRangeMin()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://hostname.com');
+        $uri->withPort(-1);
+    }
+
+    /**
+     * Test port exception
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithPortExceptionWrongRangeMax()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://hostname.com');
+        $uri->withPort(65536);
+    }
+
+    /**
+     * Test withFragment() method
+     */
+    public function testWithQuery()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com:9090/path?arg=value#anchor');
+
+        $withQuery = $uri->withQuery('key=param');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withQuery);
+        $this->assertEquals('key=param', $withQuery->getQuery());
+
+        $withQuery = $uri->withQuery('other=thing&key=param');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withQuery);
+        $this->assertEquals('other=thing&key=param', $withQuery->getQuery());
+
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
+        $this->assertEquals('arg=value', $uri->getQuery());
+    }
+
+    /**
+     * Test query exception
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithQueryException()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com:9090/path?arg=value#anchor');
+        $uri->withQuery('one=one1two=two2');
+    }
+
+    /**
+     * Test withFragment() method
+     */
+    public function testWithFragment()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com:9090/path?arg=value#anchor');
+
+        $withFragment = $uri->withFragment('some%20fragment');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withFragment);
+        $this->assertEquals('some%20fragment', $withFragment->getFragment());
+
+        $withFragment = $uri->withFragment('other fragment');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withFragment);
+        $this->assertEquals('other%20fragment', $withFragment->getFragment());
+
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
+        $this->assertEquals('anchor', $uri->getFragment());
+    }
+
+    /**
+     * Test toString() method
+     */
+    public function testToString()
+    {
+        $variants = array(
+            'http://username:password@hostname.com:9090/path?arg=value#anchor',
+            'http://username:password@hostname.com:9090/path?arg=value',
+            'http://username:password@hostname.com:9090/path',
+            'http://username:password@hostname.com:9090',
+            'http://username:password@hostname.com',
+            'http://username@hostname.com',
+            'http://hostname.com',
+            'hostname.com',
+        );
+
+        foreach ($variants as $variant) {
+            $uri = new \OtherCode\Rest\Payloads\Uri($variant);
+            $this->assertInternalType('string', (string)$uri);
+            $this->assertEquals($variant, (string)$uri);
+        }
+    }
 }
