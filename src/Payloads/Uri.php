@@ -96,7 +96,7 @@ class Uri implements \Psr\Http\Message\UriInterface
      * Uri constructor.
      * @param string $uri
      */
-    public function __construct($uri)
+    public function __construct($uri = null)
     {
         if (!is_string($uri)) {
             throw new \InvalidArgumentException('The URI parameter must be a string, a ' . gettype($uri) . ' is given.');
@@ -183,7 +183,7 @@ class Uri implements \Psr\Http\Message\UriInterface
      */
     public function getPath()
     {
-        return $this->path;
+        return rawurldecode($this->path);
     }
 
     /**
@@ -212,7 +212,12 @@ class Uri implements \Psr\Http\Message\UriInterface
      */
     public function withScheme($scheme)
     {
+        if (!is_string($scheme)) {
+            throw new \InvalidArgumentException('Scheme must be a string, given ' . gettype($scheme));
+        }
+
         $scheme = strtolower($scheme);
+
         if (!in_array($scheme, $this->validSchemes)) {
             throw new \InvalidArgumentException($scheme . " is not a valid URI Scheme.");
         }
@@ -225,11 +230,19 @@ class Uri implements \Psr\Http\Message\UriInterface
 
     /**
      * @param string $user
-     * @param null $password
+     * @param string $password
      * @return \OtherCode\Rest\Payloads\Uri
      */
     public function withUserInfo($user, $password = null)
     {
+        if (!is_string($user)) {
+            throw new \InvalidArgumentException('User must be a string, given a ' . gettype($user));
+        }
+
+        if (isset($password) && !is_string($password)) {
+            throw new \InvalidArgumentException('User must be a string, given a ' . gettype($user));
+        }
+
         $uri = clone $this;
         $uri->user = $user;
         $uri->pass = $password;
@@ -245,12 +258,18 @@ class Uri implements \Psr\Http\Message\UriInterface
      */
     public function withHost($host)
     {
+        if (!is_string($host)) {
+            throw new \InvalidArgumentException('Host must be a string, given ' . gettype($host));
+        }
+
+        $host = strtolower($host);
+
         if (!empty($host) && preg_match('/^([A-Z0-9][A-Z0-9_-]*(?:\.[A-Z0-9][A-Z0-9_-]*)+):?(\d+)?\/?/i', $host) !== 1) {
             throw new \InvalidArgumentException('Invalid host name.');
         }
 
         $uri = clone $this;
-        $uri->host = strtolower($host);
+        $uri->host = $host;
 
         return $uri;
     }
@@ -267,19 +286,24 @@ class Uri implements \Psr\Http\Message\UriInterface
         }
 
         $uri = clone $this;
-        $uri->port = strtolower($port);
+        $uri->port = $port;
 
         return $uri;
     }
 
     /**
+     * Return an instance with the specified path.
      * @param string $path
      * @throws \InvalidArgumentException
      * @return \OtherCode\Rest\Payloads\Uri
      */
     public function withPath($path)
     {
+        if (!is_string($path)) {
+            throw new \InvalidArgumentException('Path must be a string, given ' . gettype($path));
+        }
 
+        $path = strtolower($path);
 
         $uri = clone $this;
         $uri->path = rawurlencode(rawurldecode($path));
@@ -294,6 +318,12 @@ class Uri implements \Psr\Http\Message\UriInterface
      */
     public function withQuery($query)
     {
+        if (!is_string($query)) {
+            throw new \InvalidArgumentException('Query must be a string, given ' . gettype($query));
+        }
+
+        $query = strtolower($query);
+
         if (strpos($query, '=') === false) {
             throw new \InvalidArgumentException('Invalid query string it must be key1=param1 format.');
         }
@@ -303,17 +333,24 @@ class Uri implements \Psr\Http\Message\UriInterface
         }
 
         $uri = clone $this;
-        $uri->query = rawurlencode(rawurldecode($query));
+        $uri->query = rawurlencode(rawurldecode(strtolower($query)));
 
         return $uri;
     }
 
     /**
      * @param string $fragment
+     * @throws \InvalidArgumentException
      * @return \OtherCode\Rest\Payloads\Uri
      */
     public function withFragment($fragment)
     {
+        if (!is_string($fragment)) {
+            throw new \InvalidArgumentException('Fragment must be a string, given ' . gettype($fragment));
+        }
+
+        $fragment = strtolower($fragment);
+
         $uri = clone $this;
         $uri->fragment = rawurlencode(rawurldecode($fragment));
 

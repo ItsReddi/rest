@@ -224,6 +224,35 @@ class URITest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Test withPath() method
+     */
+    public function testWithPath()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com:9090/path?arg=value#anchor');
+
+        $withPath = $uri->withPath('someNewPath');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withPath);
+        $this->assertEquals('somenewpath', $withPath->getPath());
+
+        $withPath = $uri->withPath('AnotherPath');
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $withPath);
+        $this->assertEquals('anotherpath', $withPath->getPath());
+
+        $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
+        $this->assertEquals('/path', $uri->getPath());
+    }
+
+    /**
+     * Test path exception
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithPathException()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com:9090/path?arg=value#anchor');
+        $uri->withPath(array());
+    }
+
+    /**
      * Test withFragment() method
      */
     public function testWithQuery()
@@ -269,6 +298,16 @@ class URITest extends \PHPUnit\Framework\TestCase
 
         $this->assertInstanceOf('\OtherCode\Rest\Payloads\Uri', $uri);
         $this->assertEquals('anchor', $uri->getFragment());
+    }
+
+    /**
+     * Test fragment exception
+     * @expectedException \InvalidArgumentException
+     */
+    public function testWithFragmentException()
+    {
+        $uri = new \OtherCode\Rest\Payloads\Uri('http://username:password@hostname.com:9090/path?arg=value#anchor');
+        $uri->withQuery(array());
     }
 
     /**
