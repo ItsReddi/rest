@@ -1,8 +1,10 @@
 <phpunit bootstrap="vendor/autoload.php">
     <testsuites>
-        <testsuite name="Base">
+        <testsuite name="Payloads">
             <file>tests/URITest.php</file>
             <file>tests/HeadersTest.php</file>
+        </testsuite>
+        <testsuite name="Base">
             <file>tests/ConfigurationTest.php</file>
             <file>tests/RestTest.php</file>
         </testsuite>
