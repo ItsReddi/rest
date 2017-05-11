@@ -18,9 +18,15 @@ class Request implements \Psr\Http\Message\RequestInterface
 
     /**
      * Uri to call
-     * @var string
+     * @var Uri
      */
     public $uri;
+
+    /**
+     * HTTP Protocol version
+     * @var string
+     */
+    public $version;
 
     /**
      * Request headers
@@ -40,12 +46,14 @@ class Request implements \Psr\Http\Message\RequestInterface
      * @param string $uri
      * @param array|object $body
      * @param Headers|null $headers
+     * @param string $version
      */
-    public function __construct($method = null, $uri = null, $body = null, \OtherCode\Rest\Payloads\Headers $headers = null)
+    public function __construct($method = null, $uri = null, $body = null, \OtherCode\Rest\Payloads\Headers $headers = null, $version = '1.1')
     {
         $this->method = $method;
         $this->uri = $uri;
         $this->body = $body;
+        $this->version = $version;
 
         $this->setHeaders($headers);
     }
@@ -63,13 +71,34 @@ class Request implements \Psr\Http\Message\RequestInterface
         }
     }
 
+    /**
+     * Retrieves the message's request target.
+     * @return string
+     */
     public function getRequestTarget()
     {
+        $target = $this->uri->getPath();
+        if (empty($target)) {
+            $target = '/';
+        }
 
+        if ($this->uri->getQuery() != '') {
+            $target .= '?' . $this->uri->getQuery();
+        }
+
+        return $target;
     }
+
 
     public function withRequestTarget($requestTarget)
     {
+        if (preg_match('#\s#', $requestTarget)) {
+            throw new \InvalidArgumentException('Invalid request target provided; cannot contain whitespace');
+        }
+
+        $request = clone $this;
+        $request->requestTarget = $requestTarget;
+        return $request;
     }
 
     /**
@@ -81,39 +110,134 @@ class Request implements \Psr\Http\Message\RequestInterface
         return $this->method;
     }
 
+    /**
+     * Return an instance with the provided HTTP method.
+     * @param string $method
+     * @throws \InvalidArgumentException
+     * @return Request
+     */
     public function withMethod($method)
     {
+        if (!is_string($method)) {
+            throw new \InvalidArgumentException('Method must be a string, ' . gettype($method) . ' given.');
+        }
+
+        $method = strtoupper($method);
+
+        if (!in_array($method, array('POST', 'PUT', 'PATCH', 'DELETE', 'GET', 'HEAD'))) {
+            throw new \InvalidArgumentException();
+        }
+
+        $request = clone $this;
+        $request->method = $method;
+
+        return $request;
     }
 
+    /**
+     * Retrieves the URI instance
+     * @return Uri
+     */
     public function getUri()
     {
         return $this->uri;
     }
 
+
     public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false)
+    {
+        if ($uri === $this->uri) {
+            return $this;
+        }
+
+        $request = clone $this;
+        $request->uri = $uri;
+
+        if ($preserveHost === false) {
+            $host = $this->uri->getHost();
+
+            if (($port = $this->uri->getPort()) !== null) {
+                $host .= ':' . $port;
+            }
+
+            if (isset($this->headers['host'])) {
+                $header = $this->headers['host'];
+            } else {
+                $header = 'Host';
+                $this->headers['host'] = 'Host';
+            }
+
+            $this->headers = array($header => array($host)) + $this->headers;
+        }
+
+        return $request;
+    }
+
+    /**
+     * Retrieves the HTTP protocol version as a string.
+     * @return string
+     */
+    public function getProtocolVersion()
+    {
+        return $this->version;
+    }
+
+    /**
+     * Return an instance with the specified HTTP protocol version.
+     * @param string $version
+     * @return $this|Request
+     */
+    public function withProtocolVersion($version)
+    {
+        if ($this->version === $version) {
+            return $this;
+        }
+
+        $request = clone $this;
+        $request->version = $version;
+
+        return $request;
+    }
+
+    public function getHeaders()
     {
     }
 
-    public function getProtocolVersion(){}
+    public function hasHeader($name)
+    {
+    }
 
-    public function withProtocolVersion($version){}
+    public function getHeader($name)
+    {
+    }
 
-    public function getHeaders(){}
+    public function getHeaderLine($name)
+    {
+    }
 
-    public function hasHeader($name){}
+    public function withHeader($name, $value)
+    {
+    }
 
-    public function getHeader($name){}
+    public function withAddedHeader($name, $value)
+    {
+    }
 
-    public function getHeaderLine($name){}
+    public function withoutHeader($name)
+    {
+    }
 
-    public function withHeader($name, $value){}
+    /**
+     * Gets the body of the message.
+     * @return StreamInterface Returns the body as a stream.
+     */
+    public function getBody()
+    {
+        return $this->body;
+    }
 
-    public function withAddedHeader($name, $value){}
-
-    public function withoutHeader($name){}
-
-    public function getBody(){}
-
-    public function withBody(\Psr\Http\Message\StreamInterface $body){}
+    public function withBody(\Psr\Http\Message\StreamInterface $body)
+    {
+    }
 
 }
