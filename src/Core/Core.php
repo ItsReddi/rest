@@ -23,12 +23,6 @@ abstract class Core
     public $configuration;
 
     /**
-     * Last known error
-     * @var \OtherCode\Rest\Core\Error
-     */
-    public $error;
-
-    /**
      * The data to be send
      * @var \OtherCode\Rest\Payloads\Request
      */
@@ -153,18 +147,14 @@ abstract class Core
         $response = curl_exec($this->curl);
 
         /**
-         * we get the last request headers and the
-         * possible error and description. Also
-         * we launch a ConnectionException if needed.
+         * Check errors
          */
-        $this->setError(curl_errno($this->curl), curl_error($this->curl));
-        if ($this->error->code !== 0) {
-            throw new \OtherCode\Rest\Exceptions\ConnectionException($this->error->message, $this->error->code);
+        if (curl_errno($this->curl) !== 0) {
+            throw new \OtherCode\Rest\Exceptions\ConnectionException(curl_error($this->curl), curl_errno($this->curl));
         }
 
         $this->response->parseResponse($response);
         $this->response->setMetadata(curl_getinfo($this->curl));
-        $this->response->setError($this->error);
 
         /**
          * In case we have some modules attached to
@@ -185,43 +175,12 @@ abstract class Core
     }
 
     /**
-     * Return the payloads of the las call
-     * @return array
-     */
-    public function getPayloads()
-    {
-        return array(
-            'request' => $this->request,
-            'response' => $this->response,
-        );
-    }
-
-    /**
      * Get the curl request headers
      * @return array
      */
     public function getMetadata()
     {
         return $this->response->metadata;
-    }
-
-    /**
-     * Return the last error.
-     * @return \OtherCode\Rest\Core\Error
-     */
-    public function getError()
-    {
-        return $this->error;
-    }
-
-    /**
-     * Set the error code and message if exists
-     * @param $code
-     * @param $message
-     */
-    protected function setError($code, $message)
-    {
-        $this->error = new \OtherCode\Rest\Core\Error($code, $message);
     }
 
     /**
