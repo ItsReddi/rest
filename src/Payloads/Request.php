@@ -89,7 +89,10 @@ class Request implements \Psr\Http\Message\RequestInterface
         return $target;
     }
 
-
+    /**
+     * @param mixed $requestTarget
+     * @return Request
+     */
     public function withRequestTarget($requestTarget)
     {
         if (preg_match('#\s#', $requestTarget)) {
@@ -143,7 +146,12 @@ class Request implements \Psr\Http\Message\RequestInterface
         return $this->uri;
     }
 
-
+    /**
+     * Returns an instance with the provided URI.
+     * @param \Psr\Http\Message\UriInterface $uri
+     * @param bool $preserveHost
+     * @return $this|Request
+     */
     public function withUri(\Psr\Http\Message\UriInterface $uri, $preserveHost = false)
     {
         if ($uri === $this->uri) {
@@ -199,8 +207,10 @@ class Request implements \Psr\Http\Message\RequestInterface
         return $request;
     }
 
+
     public function getHeaders()
     {
+
     }
 
     public function hasHeader($name)
@@ -227,10 +237,6 @@ class Request implements \Psr\Http\Message\RequestInterface
     {
     }
 
-    /**
-     * Gets the body of the message.
-     * @return StreamInterface Returns the body as a stream.
-     */
     public function getBody()
     {
         return $this->body;
@@ -239,5 +245,4 @@ class Request implements \Psr\Http\Message\RequestInterface
     public function withBody(\Psr\Http\Message\StreamInterface $body)
     {
     }
-
 }
