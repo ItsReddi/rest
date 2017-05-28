@@ -2,6 +2,7 @@
 
 namespace OtherCode\Rest\Payloads;
 
+
 /**
  * Stream Class
  * @author Unay Santisteban <usantisteban@othercode.es>
@@ -12,53 +13,53 @@ class Stream implements \Psr\Http\Message\StreamInterface
 {
 
     /**
+     * Main stream resource
      * @var resource
-     * @since version
      */
     private $stream;
 
     /**
+     * Stream size
      * @var mixed
-     * @since version
      */
     private $size;
 
     /**
-     * @var
-     * @since version
+     * Is seekable
+     * @var bool
      */
     private $seekable;
 
     /**
+     * Is readable
      * @var bool
-     * @since version
      */
     private $readable;
 
     /**
+     * Is writable
      * @var bool
-     * @since version
      */
     private $writable;
 
     /**
+     * Stream resource uri
      * @var array|mixed|null
-     * @since version
      */
     private $uri;
 
     /**
-     * @var array|mixed
-     * @since version
+     * Custom metadata
+     * @var array
      */
-    private $customMetadata;
+    private $customMetadata = array();
 
     /**
-     * @var array Hash of readable and writable stream types
+     * Hash of readable and writable stream types
+     * @var array
      */
-    private static $readWriteHash = array(
+    private $modes = array(
         'read' => array(
-
             'r' => true, 'w+' => true, 'r+' => true, 'x+' => true, 'c+' => true,
             'rb' => true, 'w+b' => true, 'r+b' => true, 'x+b' => true,
             'c+b' => true, 'rt' => true, 'w+t' => true, 'r+t' => true,
@@ -72,55 +73,68 @@ class Stream implements \Psr\Http\Message\StreamInterface
         )
     );
 
-    public function __construct($stream, $options = [])
+    /**
+     * Stream constructor.
+     * @param mixed $resource
+     * @param array $options
+     */
+    public function __construct($resource = null, $options = array())
     {
-        if (!is_resource($stream)) {
-            throw new \InvalidArgumentException('Stream must be a resource');
-        }
+        $this->stream = $this->createResource($resource);
+        $meta = stream_get_meta_data($this->stream);
 
         if (isset($options['size'])) {
             $this->size = $options['size'];
         }
 
-        $this->customMetadata = isset($options['metadata']) ? $options['metadata'] : [];
+        if (isset($options['metadata'])) {
+            $this->customMetadata = $options['metadata'];
+        }
 
-        $this->stream = $stream;
-        $meta = stream_get_meta_data($this->stream);
         $this->seekable = $meta['seekable'];
-        $this->readable = isset(self::$readWriteHash['read'][$meta['mode']]);
-        $this->writable = isset(self::$readWriteHash['write'][$meta['mode']]);
+        $this->readable = isset($this->modes['read'][$meta['mode']]);
+        $this->writable = isset($this->modes['write'][$meta['mode']]);
+
         $this->uri = $this->getMetadata('uri');
     }
 
-    public function __get($name)
+    /**
+     * Create a resource from the input data.
+     * @param mixed $resource
+     * @return resource
+     * @throws \InvalidArgumentException
+     */
+    private function createResource($resource)
     {
-        if ($name == 'stream') {
-            throw new \RuntimeException('The stream is detached');
+        if (is_resource($resource)) {
+            return $resource;
         }
 
-        throw new \BadMethodCallException('No value for ' . $name);
-    }
-
-    public function __destruct()
-    {
-        $this->close();
-    }
-
-    public function __toString()
-    {
-        try {
-            $this->seek(0);
-            return (string)stream_get_contents($this->stream);
-
-        } catch (\Exception $e) {
-            return '';
+        if (is_object($resource)) {
+            if (method_exists($resource, '__toString')) {
+                $resource = (string)$resource;
+            }
         }
+
+        if (is_scalar($resource) || is_null($resource)) {
+            $stream = fopen('php://temp', 'r+');
+            if ($resource !== '' && $resource !== null) {
+                fwrite($stream, $resource);
+                fseek($stream, 0);
+            }
+            return $stream;
+        }
+
+        throw new \InvalidArgumentException('Invalid resource type: ' . gettype($resource));
     }
 
+    /**
+     * Return the stream contents
+     * @return bool|string
+     */
     public function getContents()
     {
         $contents = stream_get_contents($this->stream);
-
         if ($contents === false) {
             throw new \RuntimeException('Unable to read stream contents');
         }
@@ -128,30 +142,10 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $contents;
     }
 
-    public function close()
-    {
-        if (isset($this->stream)) {
-            if (is_resource($this->stream)) {
-                fclose($this->stream);
-            }
-            $this->detach();
-        }
-    }
-
-    public function detach()
-    {
-        if (!isset($this->stream)) {
-            return null;
-        }
-
-        $result = $this->stream;
-        unset($this->stream);
-        $this->size = $this->uri = null;
-        $this->readable = $this->writable = $this->seekable = false;
-
-        return $result;
-    }
-
+    /**
+     * Return the size content
+     * @return mixed|null
+     */
     public function getSize()
     {
         if ($this->size !== null) {
@@ -167,6 +161,7 @@ class Stream implements \Psr\Http\Message\StreamInterface
         }
 
         $stats = fstat($this->stream);
+
         if (isset($stats['size'])) {
             $this->size = $stats['size'];
             return $this->size;
@@ -175,26 +170,46 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return null;
     }
 
+    /**
+     * True if is readable
+     * @return bool
+     */
     public function isReadable()
     {
         return $this->readable;
     }
 
+    /**
+     * True if is writable
+     * @return bool
+     */
     public function isWritable()
     {
         return $this->writable;
     }
 
+    /**
+     * True if is seekable
+     * @return bool
+     */
     public function isSeekable()
     {
         return $this->seekable;
     }
 
+    /**
+     * True if the pointer is at the stream
+     * @return bool
+     */
     public function eof()
     {
         return !$this->stream || feof($this->stream);
     }
 
+    /**
+     * Returns the current position of the file read/write pointer
+     * @return bool|int
+     */
     public function tell()
     {
         $result = ftell($this->stream);
@@ -206,21 +221,35 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $result;
     }
 
+    /**
+     * Return the pointer at the beginning of the stream
+     * @return void
+     */
     public function rewind()
     {
         $this->seek(0);
     }
 
+    /**
+     * Seeks on a file pointer
+     * @param int $offset
+     * @param int $whence
+     */
     public function seek($offset, $whence = SEEK_SET)
     {
         if (!$this->seekable) {
             throw new \RuntimeException('Stream is not seekable');
+
         } elseif (fseek($this->stream, $offset, $whence) === -1) {
-            throw new \RuntimeException('Unable to seek to stream position '
-                . $offset . ' with whence ' . var_export($whence, true));
+            throw new \RuntimeException('Unable to seek to stream position ' . $offset . ' with whence ' . var_export($whence, true));
         }
     }
 
+    /**
+     * Binary-safe stream read
+     * @param int $length
+     * @return bool|string
+     */
     public function read($length)
     {
         if (!$this->readable) {
@@ -242,6 +271,11 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $string;
     }
 
+    /**
+     * Binary-safe stream write
+     * @param string $string
+     * @return bool|int
+     */
     public function write($string)
     {
         if (!$this->writable) {
@@ -258,18 +292,82 @@ class Stream implements \Psr\Http\Message\StreamInterface
         return $result;
     }
 
+    /**
+     * Return the requested metadata
+     * @param null $key
+     * @return array|mixed|null
+     */
     public function getMetadata($key = null)
     {
-        if (!isset($this->stream)) {
-            return $key ? null : [];
-        } elseif (!$key) {
+        if (!isset($key)) {
             return $this->customMetadata + stream_get_meta_data($this->stream);
-        } elseif (isset($this->customMetadata[$key])) {
+        }
+
+        if (isset($this->customMetadata[$key])) {
             return $this->customMetadata[$key];
         }
 
         $meta = stream_get_meta_data($this->stream);
+        if (isset($meta[$key])) {
+            return $meta[$key];
+        }
 
-        return isset($meta[$key]) ? $meta[$key] : null;
+        return null;
+    }
+
+    /**
+     * Close the stream
+     */
+    public function close()
+    {
+        if (isset($this->stream)) {
+            if (is_resource($this->stream)) {
+                fclose($this->stream);
+            }
+            $this->detach();
+        }
+    }
+
+    /**
+     * Detach the current stream
+     * @return null|resource
+     */
+    public function detach()
+    {
+        if (!isset($this->stream)) {
+            return null;
+        }
+
+        $result = $this->stream;
+
+        unset($this->stream);
+
+        $this->size = $this->uri = null;
+        $this->readable = $this->writable = $this->seekable = false;
+
+        return $result;
+    }
+
+    /**
+     * Transform the stream to string
+     * @return string
+     */
+    public function __toString()
+    {
+        try {
+            $this->seek(0);
+            return (string)stream_get_contents($this->stream);
+
+        } catch (\Exception $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Destroy the stream object
+     */
+    public function __destruct()
+    {
+        $this->close();
     }
 }
