@@ -6,6 +6,11 @@ namespace OtherCode\Rest\Modules\Encoders;
  * Class BaseEncoder
  * @author Unay Santisteban <usantisteban@othercode.es>
  * @package OtherCode\Rest\Modules\Encoders
+ * @property string $method
+ * @property \OtherCode\Rest\Payloads\Uri $uri
+ * @property string $version
+ * @property \OtherCode\Rest\Payloads\Headers $headers
+ * @property \OtherCode\Rest\Payloads\Stream $body
  */
 abstract class BaseEncoder extends \OtherCode\Rest\Modules\BaseModule
 {

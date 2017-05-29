@@ -16,7 +16,7 @@ class XMLRPCDecoder extends \OtherCode\Rest\Modules\Decoders\BaseDecoder
 
     /**
      * Decode the data of a request
-     * @return mixed
+     * @throws \OtherCode\Rest\Exceptions\DecodeException
      */
     public function decode()
     {
@@ -27,6 +27,8 @@ class XMLRPCDecoder extends \OtherCode\Rest\Modules\Decoders\BaseDecoder
             if ($faultString !== false) {
                 $response['faultString'] = $faultString;
             }
+
+            throw new \OtherCode\Rest\Exceptions\DecodeException($response['faultString'], $response['faultCode']);
         }
 
         $this->body = $response;

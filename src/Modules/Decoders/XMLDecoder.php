@@ -16,6 +16,7 @@ class XMLDecoder extends \OtherCode\Rest\Modules\Decoders\BaseDecoder
 
     /**
      * Decode the data of a request
+     * @throws \OtherCode\Rest\Exceptions\DecodeException
      */
     public function decode()
     {
@@ -25,14 +26,11 @@ class XMLDecoder extends \OtherCode\Rest\Modules\Decoders\BaseDecoder
         $this->body = new \SimpleXMLElement($this->body);
 
         /**
-         * set the new error code and message
+         * Check errors
          */
-        if (!$this->body) {
-            $errors = libxml_get_errors();
-            $this->error->code = $errors['code'];
-            $this->error->message = $errors['message'];
+        $errors = libxml_get_errors();
+        if (isset($errors['code']) && $errors['code'] !== 0) {
+            throw new \OtherCode\Rest\Exceptions\DecodeException($errors['message'], $errors['code']);
         }
-
     }
-
 }

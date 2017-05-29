@@ -5,6 +5,11 @@
  * @author Unay Santisteban <usantisteban@othercode.es>
  * @version 1.0
  * @package OtherCode\Rest\Modules\Decoders
+ * @property int $code
+ * @property string $content_type
+ * @property string $charset
+ * @property \OtherCode\Rest\Payloads\Stream $body
+ * @property array $metadata
  */
 abstract class BaseDecoder extends \OtherCode\Rest\Modules\BaseModule
 {
@@ -19,7 +24,7 @@ abstract class BaseDecoder extends \OtherCode\Rest\Modules\BaseModule
      */
     protected function decode()
     {
-        // do something with ->response
+        // do something with $this->body
     }
 
     /**
@@ -27,14 +32,6 @@ abstract class BaseDecoder extends \OtherCode\Rest\Modules\BaseModule
      */
     public function run()
     {
-        /**
-         * First we check if the response
-         * has any error.
-         */
-        if ($this->error->code != 0) {
-            return false;
-        }
-
         /**
          * match the content type and run the decoder
          */
