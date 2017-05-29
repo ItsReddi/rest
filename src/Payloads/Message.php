@@ -12,42 +12,47 @@ abstract class Message implements \Psr\Http\Message\MessageInterface
 {
 
     /**
+     * Protocol version
+     * @var string
+     */
+    public $version = '1.1';
+
+    /**
      * The response headers
      * @var \OtherCode\Rest\Payloads\Headers
      */
     public $headers;
 
     /**
-     * @var string
-     */
-    private $protocol = '1.1';
-
-    /**
+     * Main body for the message
      * @var \Psr\Http\Message\StreamInterface
      */
-    private $stream;
+    public $body;
 
     /**
+     * Retrieves the HTTP protocol version as a string.
      * @return string
      */
     public function getProtocolVersion()
     {
-        return $this->protocol;
+        return $this->version;
     }
 
     /**
+     * Return an instance with the specified HTTP protocol version.
      * @param string $version
-     * @return $this|Message
+     * @return $this|Request
      */
     public function withProtocolVersion($version)
     {
-        if ($this->protocol === $version) {
+        if ($this->version === $version) {
             return $this;
         }
 
-        $new = clone $this;
-        $new->protocol = $version;
-        return $new;
+        $request = clone $this;
+        $request->version = $version;
+
+        return $request;
     }
 
     /**
@@ -164,18 +169,20 @@ abstract class Message implements \Psr\Http\Message\MessageInterface
     }
 
     /**
+     * Return the message body
      * @return Stream|\Psr\Http\Message\StreamInterface|string
      */
     public function getBody()
     {
         if (!$this->stream) {
-            $this->stream = stream_for('');
+            $this->stream = new \OtherCode\Rest\Payloads\Stream();
         }
 
         return $this->stream;
     }
 
     /**
+     * Return the current Message with the new body
      * @param \Psr\Http\Message\StreamInterface $body
      * @return $this|Message
      */

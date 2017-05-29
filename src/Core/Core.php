@@ -44,12 +44,6 @@ abstract class Core
     );
 
     /**
-     * Main curl resource
-     * @var resource
-     */
-    private $curl;
-
-    /**
      * Main constructor
      * @param Configuration $configuration
      */
@@ -90,19 +84,20 @@ abstract class Core
      */
     protected function call($method, $url, $body = null)
     {
-        $this->curl = curl_init();
+        $curl = curl_init();
 
-        curl_setopt($this->curl, CURLOPT_FRESH_CONNECT, true);
-        curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl, CURLOPT_HEADER, true);
-
-        if (!curl_setopt_array($this->curl, $this->configuration->toArray())) {
-            throw new \OtherCode\Rest\Exceptions\ConfigurationException("It has not been possible to configure the instance, check your configuration options");
-        }
-
-        $this->request->body = $body;
+        /**
+         * @TODO merge the request object with the global configuration object
+         */
+        $this->request->setBody(new \OtherCode\Rest\Payloads\Stream($body));
         $this->request->method = strtoupper($method);
         $this->request->uri = $this->configuration->url . $url;
+
+        /**
+         * We configure the domain and url where we will
+         * make the request ir exists.
+         */
+        curl_setopt($curl, CURLOPT_URL, $this->request->uri);
 
         /**
          * In case we have some modules attached to
@@ -113,48 +108,48 @@ abstract class Core
         /**
          * Switch between the different configurations
          * depending the method used
+         * @todo apply this as "default conf"
          */
         switch ($this->request->method) {
             case "HEAD":
-                curl_setopt($this->curl, CURLOPT_NOBODY, true);
+                curl_setopt($curl, CURLOPT_NOBODY, true);
                 break;
             case "GET":
             case "DELETE":
-                curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, $this->request->method);
-                if (isset($this->request->body)) {
-                    curl_setopt($this->curl, CURLOPT_POSTFIELDS, $this->request->body);
-                }
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $this->request->method);
+
                 break;
             case "POST":
             case "PUT":
             case "PATCH":
-                curl_setopt($this->curl, CURLOPT_CUSTOMREQUEST, $this->request->method);
-                curl_setopt($this->curl, CURLOPT_POSTFIELDS, $this->request->body);
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $this->request->method);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $this->request->body);
                 break;
             default:
                 throw new \OtherCode\Rest\Exceptions\RestException('Method "' . $this->request->method . '" not supported!');
         }
 
-        /**
-         * We configure the domain and url where we will
-         * make the request ir exists.
-         */
-        curl_setopt($this->curl, CURLOPT_URL, $this->request->uri);
+        if (!curl_setopt_array($curl, $this->configuration->toArray())) {
+            throw new \OtherCode\Rest\Exceptions\ConfigurationException("It has not been possible to configure the instance, check your configuration options");
+        }
 
         /**
          * Main execution
          */
-        $response = curl_exec($this->curl);
+        $response = curl_exec($curl);
 
         /**
          * Check errors
          */
-        if (curl_errno($this->curl) !== 0) {
-            throw new \OtherCode\Rest\Exceptions\ConnectionException(curl_error($this->curl), curl_errno($this->curl));
+        if (curl_errno($curl) !== 0) {
+            throw new \OtherCode\Rest\Exceptions\ConnectionException(curl_error($curl), curl_errno($curl));
         }
 
+        /**
+         * @todo create the input stream
+         */
         $this->response->parseResponse($response);
-        $this->response->setMetadata(curl_getinfo($this->curl));
+        $this->response->setMetadata(curl_getinfo($curl));
 
         /**
          * In case we have some modules attached to
@@ -165,7 +160,7 @@ abstract class Core
         /**
          * Close the current connection
          */
-        curl_close($this->curl);
+        curl_close($curl);
 
         /**
          * Return the final response processed or not

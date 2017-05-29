@@ -8,7 +8,7 @@ namespace OtherCode\Rest\Payloads;
  * @version 1.0
  * @package OtherCode\Rest\Payloads
  */
-class Request implements \Psr\Http\Message\RequestInterface
+class Request extends Message implements \Psr\Http\Message\RequestInterface
 {
     /**
      * Http Method
@@ -23,24 +23,6 @@ class Request implements \Psr\Http\Message\RequestInterface
     public $uri;
 
     /**
-     * HTTP Protocol version
-     * @var string
-     */
-    public $version;
-
-    /**
-     * Request headers
-     * @var \OtherCode\Rest\Payloads\Headers
-     */
-    public $headers;
-
-    /**
-     * Main data to be send
-     * @var array|object
-     */
-    public $body;
-
-    /**
      * Request constructor.
      * @param string $method
      * @param string $uri
@@ -52,10 +34,23 @@ class Request implements \Psr\Http\Message\RequestInterface
     {
         $this->method = $method;
         $this->uri = $uri;
-        $this->body = $body;
         $this->version = $version;
 
+        $this->setBody($body);
         $this->setHeaders($headers);
+    }
+
+    /**
+     * Set the Body
+     * @param \Psr\Http\Message\StreamInterface $body
+     */
+    public function setBody(\Psr\Http\Message\StreamInterface $body = null)
+    {
+        if (isset($body)) {
+            $this->body = $body;
+        } else {
+            $this->body = new \OtherCode\Rest\Payloads\Stream();
+        }
     }
 
     /**
@@ -181,68 +176,4 @@ class Request implements \Psr\Http\Message\RequestInterface
         return $request;
     }
 
-    /**
-     * Retrieves the HTTP protocol version as a string.
-     * @return string
-     */
-    public function getProtocolVersion()
-    {
-        return $this->version;
-    }
-
-    /**
-     * Return an instance with the specified HTTP protocol version.
-     * @param string $version
-     * @return $this|Request
-     */
-    public function withProtocolVersion($version)
-    {
-        if ($this->version === $version) {
-            return $this;
-        }
-
-        $request = clone $this;
-        $request->version = $version;
-
-        return $request;
-    }
-
-
-    public function getHeaders()
-    {
-
-    }
-
-    public function hasHeader($name)
-    {
-    }
-
-    public function getHeader($name)
-    {
-    }
-
-    public function getHeaderLine($name)
-    {
-    }
-
-    public function withHeader($name, $value)
-    {
-    }
-
-    public function withAddedHeader($name, $value)
-    {
-    }
-
-    public function withoutHeader($name)
-    {
-    }
-
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    public function withBody(\Psr\Http\Message\StreamInterface $body)
-    {
-    }
 }

@@ -13,6 +13,25 @@ abstract class CurlOpts
 {
 
     /**
+     * TRUE to force the use of a new connection instead of a cached one.
+     * @var bool
+     */
+    public $fresh_connect = true;
+
+    /**
+     * TRUE to return the transfer as a string of the return value of
+     * curl_exec() instead of outputting it out directly.
+     * @var bool
+     */
+    public $returntransfer = true;
+
+    /**
+     * TRUE to include the header in the output.
+     * @var bool
+     */
+    public $header = true;
+
+    /**
      * TRUE to automatically set the Referer: field in requests where it
      * follows a Location: redirect.
      * @var boolean
@@ -362,4 +381,23 @@ abstract class CurlOpts
      */
     public $stderr;
 
+    /**
+     * A callback accepting two parameters. The first is the cURL resource,
+     * and the second is a string with the data to be written. The data must
+     * be saved by this callback. It must return the exact number of bytes
+     * written or the transfer will be aborted with an error.
+     * @var \Closure
+     */
+    public $writefunction;
+
+    /**
+     * A callback accepting three parameters. The first is the cURL resource,
+     * the second is a stream resource provided to cURL through the option
+     * CURLOPT_INFILE, and the third is the maximum amount of data to be read.
+     * The callback must return a string with a length equal or smaller than
+     * the amount of data requested, typically by reading it from the passed
+     * stream resource. It should return an empty string to signal EOF.
+     * @var \Closure
+     */
+    public $readfunction;
 }

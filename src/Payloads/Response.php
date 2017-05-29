@@ -8,7 +8,7 @@ namespace OtherCode\Rest\Payloads;
  * @version 1.0
  * @package OtherCode\Rest\Payloads
  */
-class Response implements \Psr\Http\Message\ResponseInterface
+class Response extends Message implements \Psr\Http\Message\ResponseInterface
 {
 
     /**
@@ -30,24 +30,6 @@ class Response implements \Psr\Http\Message\ResponseInterface
     public $charset;
 
     /**
-     * The response body
-     * @var string
-     */
-    public $body;
-
-    /**
-     * The response headers
-     * @var \OtherCode\Rest\Payloads\Headers
-     */
-    public $headers;
-
-    /**
-     * The last known error
-     * @var \OtherCode\Rest\Core\Error
-     */
-    public $error;
-
-    /**
      * Metadata array
      * @var array
      */
@@ -55,19 +37,12 @@ class Response implements \Psr\Http\Message\ResponseInterface
 
     /**
      * @param null $response
-     * @param null $error
      * @param null $metadata
      */
-    public function __construct($response = null, $error = null, $metadata = null)
+    public function __construct($response = null, $metadata = null)
     {
         if (isset($response)) {
             $this->parseResponse($response);
-        }
-
-        if (isset($error)) {
-            $this->setError($error);
-        } else {
-            $this->setError(new \OtherCode\Rest\Core\Error());
         }
 
         if (isset($metadata)) {
@@ -84,7 +59,7 @@ class Response implements \Psr\Http\Message\ResponseInterface
         $response = explode("\r\n\r\n", $response);
 
         $this->body = array_pop($response);
-        if(empty($this->body)){
+        if (empty($this->body)) {
             $this->body = null;
         }
 
@@ -111,40 +86,16 @@ class Response implements \Psr\Http\Message\ResponseInterface
         $this->metadata = $metadata;
     }
 
-    /**
-     * Set the Error
-     * @param $error
-     */
-    public function setError($error)
+    public function getStatusCode()
     {
-        $this->error = $error;
     }
 
-    public function getStatusCode(){}
+    public function withStatus($code, $reasonPhrase = '')
+    {
+    }
 
-    public function withStatus($code, $reasonPhrase = ''){}
+    public function getReasonPhrase()
+    {
+    }
 
-    public function getReasonPhrase(){}
-
-    public function getProtocolVersion(){}
-
-    public function withProtocolVersion($version){}
-
-    public function getHeaders(){}
-
-    public function hasHeader($name){}
-
-    public function getHeader($name){}
-
-    public function getHeaderLine($name){}
-
-    public function withHeader($name, $value){}
-
-    public function withAddedHeader($name, $value){}
-
-    public function withoutHeader($name){}
-
-    public function getBody(){}
-
-    public function withBody(\Psr\Http\Message\StreamInterface $body){}
 }
