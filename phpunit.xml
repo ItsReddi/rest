@@ -1,4 +1,9 @@
 <phpunit bootstrap="vendor/autoload.php">
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src/</directory>
+        </whitelist>
+    </filter>
     <testsuites>
         <testsuite name="Payloads">
             <file>tests/URITest.php</file>
@@ -10,6 +15,9 @@
         </testsuite>
         <testsuite name="Modules">
             <file>tests/DecodersTest.php</file>
+        </testsuite>
+        <testsuite name="headers">
+            <file>tests/HeadersTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

@@ -67,6 +67,19 @@ class Request extends Message implements \Psr\Http\Message\RequestInterface
     }
 
     /**
+     * Initialize a short chained call.
+     * @param string $uri
+     * @return \OtherCode\Rest\Rest
+     */
+    public static function call($uri)
+    {
+        return new \OtherCode\Rest\Rest(new \OtherCode\Rest\Core\Configuration(array(
+            'url' => $uri
+        )));
+    }
+
+
+    /**
      * Retrieves the message's request target.
      * @return string
      */

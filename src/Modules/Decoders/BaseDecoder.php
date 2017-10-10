@@ -33,11 +33,25 @@ abstract class BaseDecoder extends \OtherCode\Rest\Modules\BaseModule
     public function run()
     {
         /**
-         * match the content type and run the decoder
+         * First we check if the response
+         * has any error.
          */
-        if ($this->contentType == $this->content_type) {
-            $this->decode();
+        if ($this->error->code != 0) {
+            return false;
         }
+
+        $body = $this->body;
+        $content_type = $this->content_type;
+        if (!empty($body) && isset($content_type)) {
+
+            /**
+             * match the content type and run the decoder
+             */
+            if ($this->contentType == $content_type) {
+                $this->decode();
+            }
+        }
+
         return true;
     }
 }
